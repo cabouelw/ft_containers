@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/03/22 19:34:45 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/03/22 20:31:07 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -165,14 +165,33 @@ namespace ft
 			}
 			template <class InputIterator>
 			void assign (InputIterator first, InputIterator last) {
-				this->_size_type = last - first;
-				for (size_t i = 0; i < this->_size_type; i++)
+				size_t tmp_size = last - first;
+				if (tmp_size > this->_capacity)
 				{
-					_arry[i] = *first;
+					pointer tmp_arry = this->_arry;
+					this->_arry = _alloc.allocate(tmp_size);
+					for (size_t i = 0; i < tmp_size; i++)
+						this->_arry[i] = tmp_arry[i];
+					std::cout << "hna\n"; // TODO
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = tmp_size;
+				}
+				for (size_t i = 0; i < tmp_size; i++)
+				{
+					this->_arry[i] = *first;
 					++first;
 				}
+				this->_size_type = tmp_size;
+			}
+			void assign (size_type n, const value_type& val) {
 				
 			}
+
+
+
+
+
+
 			
 	};
 }
