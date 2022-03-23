@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/03/22 20:31:07 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/03/23 20:29:18 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,7 +41,7 @@ namespace ft
 		public:
 			explicit vector (const allocator_type& alloc = allocator_type()): _arry(nullptr), _size_type(0), _capacity(0), _alloc(alloc) {}
 			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
-				: _alloc(alloc), _size_type(n), _capacity(n)
+				: _size_type(n), _capacity(n), _alloc(alloc)
 			{
 				_arry = _alloc.allocate(_capacity);
 				for (size_t i = 0; i < _size_type; i++)
@@ -165,14 +165,13 @@ namespace ft
 			}
 			template <class InputIterator>
 			void assign (InputIterator first, InputIterator last) {
-				size_t tmp_size = last - first;
+				size_type tmp_size = last - first;
 				if (tmp_size > this->_capacity)
 				{
 					pointer tmp_arry = this->_arry;
 					this->_arry = _alloc.allocate(tmp_size);
-					for (size_t i = 0; i < tmp_size; i++)
+					for (size_t i = 0; i < this->_size_type; i++)
 						this->_arry[i] = tmp_arry[i];
-					std::cout << "hna\n"; // TODO
 					this->_alloc.deallocate(tmp_arry, this->_capacity);
 					this->_capacity = tmp_size;
 				}
@@ -184,12 +183,100 @@ namespace ft
 				this->_size_type = tmp_size;
 			}
 			void assign (size_type n, const value_type& val) {
-				
+				if (n > this->_capacity)
+				{
+					pointer tmp_arry = this->_arry;
+					this->_arry = _alloc.allocate(n);
+					for (size_t i = 0; i < this->_size_type; i++)
+						this->_arry[i] = tmp_arry[i];
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = n;
+				}
+				for (size_t i = 0; i < n; i++)
+					this->_arry[i] = val;
+				this->_size_type = n;
 			}
-
-
-
-
+			void push_back (const value_type& val) {
+				if (this->_size_type == this->_capacity)
+				{
+					pointer tmp_arry = this->_arry;
+					this->_arry = _alloc.allocate((this->_capacity * 2));
+					for (size_t i = 0; i < this->_size_type; i++)
+						this->_arry[i] = tmp_arry[i];
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = (this->_capacity) ? (this->_capacity * 2) : 1;
+				}
+				this->_arry[this->_size_type] = val;
+				this->_size_type++;
+			}
+			void pop_back() {
+				// if (this->_size_type)
+					this->_size_type--;
+			}
+			iterator insert (iterator position, const value_type& val) {
+				size_type pos = position - this->begin();
+				// std::cout << pos << "\n";
+				if ((this->_size_type + 1) > this->_capacity)
+				{
+					pointer tmp_arry = this->_arry;
+					size_t j = 0;
+					size_t new_size = (pos < (this->_capacity + 1)) ? (this->_capacity * 2) : (pos + 1);
+					this->_arry = _alloc.allocate(new_size);
+					for (size_t i = 0; i <= new_size; i++)
+						if (i != pos)
+							this->_arry[i] = tmp_arry[j++];
+						else
+							this->_arry[i] = val;
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = new_size;
+					this->_size_type = (this->_size_type < pos) ? pos : this->_size_type;
+				}
+				else if (pos >= 0)
+				{
+					for (size_t i = this->_size_type; i > pos; i--)
+						if (i > pos)
+							this->_arry[i] = this->_arry[i - 1];
+					this->_arry[pos] = val;
+				}
+				this->_size_type++;
+				return (position);
+			}
+			void insert (iterator position, size_type n, const value_type& val) {
+				size_type pos = position - this->begin();
+					size_t j = this->_size_type;
+				if ((this->_size_type + n) > this->_capacity)
+				{
+					pointer tmp_arry = this->_arry;
+					// std::cout << "sizevec=" << this->_size_type << "\n";
+					this->_arry = this->_alloc.allocate((this->_capacity + n));
+					for (size_t i = (this->_size_type + n - 1); i >= 0; i--)
+					{
+						// std::cout << "i=" << i << " |pos=" << pos << " |n=" << n << "\n";
+						if (i >= pos && i < (pos + n))
+							this->_arry[i] = val;
+						else
+							this->_arry[i] = tmp_arry[--j];
+						if (!i)
+							break;
+					}
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = this->_size_type + n;
+				}
+				else if (pos >= 0)
+				{
+					for (size_t i = (this->_size_type + n - 1); i >= 0; i--)
+					{
+						// std::cout << "i=" << i << " |pos=" << pos << " |n=" << n << "\n";
+						if (i >= pos && i < (pos + n))
+							this->_arry[i] = val;
+						else
+							this->_arry[i] = this->_arry[--j];
+						if (!i)
+							break;
+					}
+				}
+				this->_size_type += n;
+			}
 
 
 			

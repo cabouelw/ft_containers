@@ -1,5 +1,9 @@
 {
     "files.associations": {
+        "__split_buffer": "cpp",
+        "deque": "cpp",
+        "string": "cpp",
+        "vector": "cpp",
         "__bit_reference": "cpp",
         "__config": "cpp",
         "__debug": "cpp",
@@ -10,7 +14,6 @@
         "__mutex_base": "cpp",
         "__node_handle": "cpp",
         "__nullptr": "cpp",
-        "__split_buffer": "cpp",
         "__string": "cpp",
         "__threading_support": "cpp",
         "__tree": "cpp",
@@ -33,7 +36,6 @@
         "ctime": "cpp",
         "cwchar": "cpp",
         "cwctype": "cpp",
-        "deque": "cpp",
         "exception": "cpp",
         "functional": "cpp",
         "initializer_list": "cpp",
@@ -55,14 +57,12 @@
         "stack": "cpp",
         "stdexcept": "cpp",
         "streambuf": "cpp",
-        "string": "cpp",
         "string_view": "cpp",
         "system_error": "cpp",
         "tuple": "cpp",
         "type_traits": "cpp",
         "typeinfo": "cpp",
         "unordered_map": "cpp",
-        "utility": "cpp",
-        "vector": "cpp"
+        "utility": "cpp"
     }
 }

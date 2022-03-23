@@ -69,7 +69,7 @@ namespace ft
 			}
 			ft_iterator& operator+= (difference_type n) { _ptr =+ n; return (*this); }
 			ft_iterator operator- (difference_type n) const { return (ft_iterator(_ptr - n)); }
-			ft_iterator& operator--() { return (--_ptr); }
+			ft_iterator& operator--() { --_ptr; return (*this); }
 			ft_iterator  operator--(int)
 			{
 				ft_iterator it(*this);
