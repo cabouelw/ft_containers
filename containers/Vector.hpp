@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/03/24 20:17:53 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/03/26 20:02:17 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -34,10 +34,10 @@ namespace ft
 			typedef	typename allocator_type::size_type					size_type;
 
 		private:
-			pointer	_arry;
-			size_t	_size_type;
-			size_t	_capacity;
-			Alloc	_alloc;
+			pointer			_arry;
+			unsigned long	_size_type;
+			size_t			_capacity;
+			Alloc			_alloc;
 		public:
 			explicit vector (const allocator_type& alloc = allocator_type()): _arry(nullptr), _size_type(0), _capacity(0), _alloc(alloc) {}
 			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
@@ -47,7 +47,7 @@ namespace ft
 				for (size_t i = 0; i < _size_type; i++)
 					_arry[i] = val;
 			}
-			template <class InputIterator>
+			// template <class InputIterator>
 			// vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
 			// 	: _alloc(alloc), _size_type(0), _capacity(0)
 			// {
@@ -242,32 +242,35 @@ namespace ft
 				return (this->begin() + pos);
 			}
 			void insert (iterator position, size_type n, const value_type& val) {
-				size_type pos = ((position - this->begin()) < 0) ? 0 : (position - this->begin());
+				size_type pos = position - this->begin();
 				pointer tmp_arry = this->_arry;
-				// int insrt = (position - this->begin());
 				size_t old_size = this->_size_type;
 				size_type i = old_size;
 				if ((this->_size_type + n) > this->_capacity)
 				{
 					size_t new_capacity = ((this->_capacity * 2) > (this->_size_type + n)) ? (this->_capacity * 2) : (this->_size_type + n);
 					this->_arry = _alloc.allocate(new_capacity);
+					for (i = 0; i < this->_capacity; i++)
+						this->_arry[i] = tmp_arry[i];
+					std::cout << "size=" << this->_size_type << "|pos=" << (size_t)pos << "|n=" << n << "|\n";
+					this->_size_type = (pos >= old_size) ? (pos + n) : (old_size + n);
 					this->_alloc.deallocate(tmp_arry, this->_capacity);
 					this->_capacity = new_capacity;
-					this->_size_type = this->_size_type + n;
-					for (i = 0; i <= old_size; i++)
-						this->_arry[i + n] = tmp_arry[i];
 				}
-				size_type j = old_size;
+				i = old_size + 1;
 				while (i != pos && pos <= old_size)
 				{
-					std::cout << tmp_arry[j] << "|";
-					this->_arry[i] = tmp_arry[j--];
+					this->_arry[i] = this->_arry[i - n];
 					if (!i)
 						break;
 					--i;
 				}
-				this->_arry[pos] = val;
-				std::cout << std::endl;
+				i = 0;
+				while (i < n)
+				{
+					this->_arry[pos + i] = val;
+					i++;
+				}
 			}
 
 
