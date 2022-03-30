@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/03/26 20:02:17 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/03/30 16:12:00 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -59,8 +59,9 @@ namespace ft
 				this->_capacity = x._capacity;
 				this->_size_type = x._size_type;
 				_arry = _alloc.allocate(_capacity);
-				for(int i = 0; i < _size_type; i++)
+				for(size_type i = 0; i < _size_type; i++)
                         _arry[i] = x[i];
+				return *this;
 			}
 			~vector() {
 				delete [] _arry;
@@ -252,12 +253,11 @@ namespace ft
 					this->_arry = _alloc.allocate(new_capacity);
 					for (i = 0; i < this->_capacity; i++)
 						this->_arry[i] = tmp_arry[i];
-					std::cout << "size=" << this->_size_type << "|pos=" << (size_t)pos << "|n=" << n << "|\n";
 					this->_size_type = (pos >= old_size) ? (pos + n) : (old_size + n);
 					this->_alloc.deallocate(tmp_arry, this->_capacity);
 					this->_capacity = new_capacity;
 				}
-				i = old_size + 1;
+				i = old_size + n;
 				while (i != pos && pos <= old_size)
 				{
 					this->_arry[i] = this->_arry[i - n];
@@ -272,9 +272,131 @@ namespace ft
 					i++;
 				}
 			}
-
-
-			
+			template <class InputIterator>
+			void insert (iterator position, InputIterator first, InputIterator last) {
+				size_type pos = position - this->begin();
+				pointer tmp_arry = this->_arry;
+				size_t old_size = this->_size_type;
+				size_type i = old_size;
+				size_type n = (last - first);
+				if ((this->_size_type + n) > this->_capacity)
+				{
+					size_t new_capacity = ((this->_capacity * 2) > (this->_size_type + n)) ? (this->_capacity * 2) : (this->_size_type + n);
+					this->_arry = _alloc.allocate(new_capacity);
+					for (i = 0; i < this->_capacity; i++)
+						this->_arry[i] = tmp_arry[i];
+					this->_size_type = (pos >= old_size) ? (pos + n) : (old_size + n);
+					this->_alloc.deallocate(tmp_arry, this->_capacity);
+					this->_capacity = new_capacity;
+				}
+				i = old_size + n;
+				while (i != pos && pos <= old_size)
+				{
+					this->_arry[i] = this->_arry[i - n];
+					if (!i)
+						break;
+					--i;
+				}
+				i = 0;
+				InputIterator idx;
+				for (InputIterator idx = first; idx != last; idx++)
+				{
+					this->_arry[pos + i] = *idx;
+					i++;
+				}
+			}
+			iterator erase (iterator position) {
+				size_type pos = position - this->begin();
+				if (pos > this->_capacity)
+					return this->end();
+				pointer tmp_arry = this->_arry;
+				this->_arry = _alloc.allocate(--this->_capacity);
+				for (size_type i = 0; i < this->_capacity; i++)
+					this->_arry[i] = tmp_arry[(i >= pos) ? (i + 1) : i];
+				this->_size_type--;
+				this->_alloc.deallocate(tmp_arry, this->_capacity + 1);
+				return (this->begin() + pos);
+			}
+			iterator erase (iterator first, iterator last) {
+				size_type size = last - first;
+				size_type pos = first - this->begin();
+				if (pos >= this->_capacity)
+					return this->begin();
+				pointer tmp_arry = this->_arry;
+				this->_arry = _alloc.allocate(this->_capacity + size);
+				for (size_type i = 0; i < this->_capacity; i++)
+					this->_arry[i] = tmp_arry[(i >= pos) ? (i + size) : i];
+				this->_size_type -= size;
+				this->_alloc.deallocate(tmp_arry, this->_capacity + size);
+				std::cout << "pos=" << pos << "\n";
+				return (this->begin() + pos);
+			}
+			void swap (vector& x) {
+				pointer thistmp = this->_arry;
+				pointer xtmp = x._arry;
+				this->_arry = _alloc.allocate(x.capacity());
+				x._arry = _alloc.allocate(this->capacity());
+				size_type tmp = this->_capacity;
+				this->_capacity = x._capacity;
+				x._capacity = tmp;
+				tmp = this->_size_type;
+				this->_size_type = x._size_type;
+				x._size_type = tmp;
+				for (size_type i = 0; i < this->capacity(); i++)
+					this->_arry[i] = xtmp[i];
+				for (size_type i = 0; i < x.capacity(); i++)
+					x._arry[i] = thistmp[i];
+				this->_alloc.deallocate(thistmp, x._capacity);
+				this->_alloc.deallocate(xtmp, this->_capacity);
+			}
+			void clear() {
+				this->_size_type = 0;
+			}
+			allocator_type get_allocator() const {
+				allocator_type tmp = _alloc;
+				return tmp;
+			}
 	};
+	template <class T, class Alloc>
+	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		if (lhs.size() != rhs.size())
+			return false;
+		for (size_t i = 0; i < rhs.size(); i++)
+			if (lhs[i] != rhs[i])
+				return false;
+		return true;
+	}
+	template <class T, class Alloc>
+	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return (!(lhs == rhs));
+	}
+	template <class T, class Alloc>
+	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		for (size_t i = 0; i < lhs.size() && i < rhs.size(); i++)
+			if (lhs[i] >= rhs[i])
+				return false;
+		return (true);
+	}
+	template <class T, class Alloc>
+	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return (!(lhs < rhs) && (lhs != rhs));
+	}
+	template <class T, class Alloc>
+	bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return ((rhs < lhs));
+	}
+	template <class T, class Alloc>
+	bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+		return ((lhs < rhs));
+	}
+	// template <class T, class Alloc>
+	// void swap (vector<T,Alloc>& x, vector<T,Alloc>& y) {
+	// 	vector<T,Alloc> tmp = x;
+	// 	x = y;
+	// 	y = tmp;
+	// }
+
+
+
 }
 #endif
