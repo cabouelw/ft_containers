@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/03/30 16:12:00 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/04/01 19:47:08 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,18 +47,27 @@ namespace ft
 				for (size_t i = 0; i < _size_type; i++)
 					_arry[i] = val;
 			}
-			// template <class InputIterator>
-			// vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
-			// 	: _alloc(alloc), _size_type(0), _capacity(0)
-			// {
-			// }
+			template <class InputIterator>
+			vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
+				: _alloc(alloc)
+			{
+				this->_size_type = last - first;
+				this->_capacity = this->_size_type;
+				this->_arry = this->_alloc.allocate(this->_capacity);
+				for (size_t i = 0; i < this->_size_type; i++)
+				{
+					this->_arry[i] = *first;
+					first++;
+				}
+			}
 			vector (const vector& x) { *this = x; }
 			vector& operator= (const vector& x) {
 				if (this == &x)
 					return (*this);
-				this->_capacity = x._capacity;
+				this->_alloc.deallocate(this->_arry, this->_capacity);
+				this->_arry = this->_alloc.allocate(x._capacity);
 				this->_size_type = x._size_type;
-				_arry = _alloc.allocate(_capacity);
+				this->_capacity = x._capacity;
 				for(size_type i = 0; i < _size_type; i++)
                         _arry[i] = x[i];
 				return *this;
@@ -71,15 +80,16 @@ namespace ft
 			iterator begin() {
 				return (iterator(_arry));
 			}
-			const_iterator cbegin() const {
+			const_iterator begin() const {
 				return (const_iterator(_arry));
 			}
 			iterator end() {
 				return (iterator(_arry + _size_type));
 			}
-			const_iterator cend() const {
+			const_iterator end() const {
 				return (const_iterator(_arry + _size_type));
 			}
+			// TODO rend/rbegin
 			reference operator[] (size_type n) {
 				return (_arry[n]);
 			}
@@ -307,47 +317,26 @@ namespace ft
 			}
 			iterator erase (iterator position) {
 				size_type pos = position - this->begin();
-				if (pos > this->_capacity)
-					return this->end();
-				pointer tmp_arry = this->_arry;
-				this->_arry = _alloc.allocate(--this->_capacity);
-				for (size_type i = 0; i < this->_capacity; i++)
-					this->_arry[i] = tmp_arry[(i >= pos) ? (i + 1) : i];
-				this->_size_type--;
-				this->_alloc.deallocate(tmp_arry, this->_capacity + 1);
+				this->_size_type -= (this->_size_type > 0) ? 1 : 0;
+				for (size_type i = pos; i < (this->size() + 1); i++)
+					this->_arry[i] = this->_arry[i + 1];
 				return (this->begin() + pos);
 			}
 			iterator erase (iterator first, iterator last) {
 				size_type size = last - first;
 				size_type pos = first - this->begin();
-				if (pos >= this->_capacity)
-					return this->begin();
-				pointer tmp_arry = this->_arry;
-				this->_arry = _alloc.allocate(this->_capacity + size);
-				for (size_type i = 0; i < this->_capacity; i++)
-					this->_arry[i] = tmp_arry[(i >= pos) ? (i + size) : i];
-				this->_size_type -= size;
-				this->_alloc.deallocate(tmp_arry, this->_capacity + size);
-				std::cout << "pos=" << pos << "\n";
+				this->_size_type -= (size <= this->_size_type) ? size : this->_size_type;
+				if ((pos + size) >= this->size())
+					return (this->begin() + pos);
+				for (size_type i = pos; i < (this->size() + size); i++)
+					this->_arry[i] = this->_arry[i + size];
 				return (this->begin() + pos);
 			}
+
 			void swap (vector& x) {
-				pointer thistmp = this->_arry;
-				pointer xtmp = x._arry;
-				this->_arry = _alloc.allocate(x.capacity());
-				x._arry = _alloc.allocate(this->capacity());
-				size_type tmp = this->_capacity;
-				this->_capacity = x._capacity;
-				x._capacity = tmp;
-				tmp = this->_size_type;
-				this->_size_type = x._size_type;
-				x._size_type = tmp;
-				for (size_type i = 0; i < this->capacity(); i++)
-					this->_arry[i] = xtmp[i];
-				for (size_type i = 0; i < x.capacity(); i++)
-					x._arry[i] = thistmp[i];
-				this->_alloc.deallocate(thistmp, x._capacity);
-				this->_alloc.deallocate(xtmp, this->_capacity);
+				vector<T> tmp = *this;
+				*this = x;
+				x = tmp;
 			}
 			void clear() {
 				this->_size_type = 0;
@@ -357,14 +346,36 @@ namespace ft
 				return tmp;
 			}
 	};
+	template <class InputIterator1, class InputIterator2>
+	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 )
+	{
+		while (first1!=last1) {
+			if (!(*first1 == *first2))
+				return false;
+			++first1;
+			++first2;
+		}
+		return true;
+	}
+	template <class InputIterator1, class InputIterator2>
+	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1,
+                                InputIterator2 first2, InputIterator2 last2)
+	{
+		while (first1!=last1)
+		{
+			if (first2==last2 || *first2<*first1)
+				return false;
+			else if (*first1<*first2)
+				return true;
+			++first1;
+			++first2;
+		}
+		return (first2!=last2);
+	}
+	
 	template <class T, class Alloc>
 	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		if (lhs.size() != rhs.size())
-			return false;
-		for (size_t i = 0; i < rhs.size(); i++)
-			if (lhs[i] != rhs[i])
-				return false;
-		return true;
+		return (equal(lhs.begin(), lhs.end(), rhs.begin()));
 	}
 	template <class T, class Alloc>
 	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
@@ -372,29 +383,24 @@ namespace ft
 	}
 	template <class T, class Alloc>
 	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		for (size_t i = 0; i < lhs.size() && i < rhs.size(); i++)
-			if (lhs[i] >= rhs[i])
-				return false;
-		return (true);
+		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 	template <class T, class Alloc>
 	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		return (!(lhs < rhs) && (lhs != rhs));
+		return (rhs < lhs);
 	}
 	template <class T, class Alloc>
 	bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		return ((rhs < lhs));
+		return (!(rhs < lhs));
 	}
 	template <class T, class Alloc>
 	bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		return ((lhs < rhs));
+		return (!(lhs < rhs));
 	}
-	// template <class T, class Alloc>
-	// void swap (vector<T,Alloc>& x, vector<T,Alloc>& y) {
-	// 	vector<T,Alloc> tmp = x;
-	// 	x = y;
-	// 	y = tmp;
-	// }
+	template <class T, class Alloc>
+	void swap (vector<T,Alloc>& x, vector<T,Alloc>& y) {
+		x.swap(y);
+	}
 
 
 
