@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/04/01 19:47:08 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/04/07 16:36:12 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -64,7 +64,8 @@ namespace ft
 			vector& operator= (const vector& x) {
 				if (this == &x)
 					return (*this);
-				this->_alloc.deallocate(this->_arry, this->_capacity);
+				if (this->_capacity)
+					this->_alloc.deallocate(this->_arry, this->_capacity);
 				this->_arry = this->_alloc.allocate(x._capacity);
 				this->_size_type = x._size_type;
 				this->_capacity = x._capacity;
@@ -73,9 +74,9 @@ namespace ft
 				return *this;
 			}
 			~vector() {
-				delete [] _arry;
-				_size_type = 0;
-				_capacity = 0;
+				this->_alloc.deallocate(this->_arry, this->_capacity);
+				this->_size_type = 0;
+				this->_capacity = 0;
 			}
 			iterator begin() {
 				return (iterator(_arry));
@@ -100,7 +101,7 @@ namespace ft
 				return (this->_size_type);
 			}
 			size_type max_size() const {
-				return (this->_capacity);
+				return (_alloc.max_size());
 			}
 			void resize (size_type n, value_type val = value_type()) {
 				if (n < this->_size_type)
@@ -257,7 +258,8 @@ namespace ft
 				pointer tmp_arry = this->_arry;
 				size_t old_size = this->_size_type;
 				size_type i = old_size;
-				if ((this->_size_type + n) > this->_capacity)
+				this->_size_type = old_size + n;
+				if (this->_size_type > this->_capacity)
 				{
 					size_t new_capacity = ((this->_capacity * 2) > (this->_size_type + n)) ? (this->_capacity * 2) : (this->_size_type + n);
 					this->_arry = _alloc.allocate(new_capacity);
@@ -289,13 +291,13 @@ namespace ft
 				size_t old_size = this->_size_type;
 				size_type i = old_size;
 				size_type n = (last - first);
-				if ((this->_size_type + n) > this->_capacity)
+				if ((old_size + n) > this->_capacity)
 				{
-					size_t new_capacity = ((this->_capacity * 2) > (this->_size_type + n)) ? (this->_capacity * 2) : (this->_size_type + n);
+					size_t new_capacity = ((this->_capacity * 2) > (old_size + n)) ? (this->_capacity * 2) : (old_size + n);
 					this->_arry = _alloc.allocate(new_capacity);
 					for (i = 0; i < this->_capacity; i++)
 						this->_arry[i] = tmp_arry[i];
-					this->_size_type = (pos >= old_size) ? (pos + n) : (old_size + n);
+					old_size = (pos >= old_size) ? (pos) : (old_size);
 					this->_alloc.deallocate(tmp_arry, this->_capacity);
 					this->_capacity = new_capacity;
 				}
@@ -308,12 +310,12 @@ namespace ft
 					--i;
 				}
 				i = 0;
-				InputIterator idx;
 				for (InputIterator idx = first; idx != last; idx++)
 				{
 					this->_arry[pos + i] = *idx;
 					i++;
 				}
+				this->_size_type = old_size + n;
 			}
 			iterator erase (iterator position) {
 				size_type pos = position - this->begin();
@@ -334,7 +336,8 @@ namespace ft
 			}
 
 			void swap (vector& x) {
-				vector<T> tmp = *this;
+				vector<T> tmp;
+				tmp = *this;
 				*this = x;
 				x = tmp;
 			}
@@ -342,15 +345,15 @@ namespace ft
 				this->_size_type = 0;
 			}
 			allocator_type get_allocator() const {
-				allocator_type tmp = _alloc;
-				return tmp;
+				// allocator_type tmp = _alloc;
+				return _alloc;
 			}
 	};
 	template <class InputIterator1, class InputIterator2>
 	bool equal ( InputIterator1 first1, InputIterator1 last1, InputIterator2 first2 )
 	{
-		while (first1!=last1) {
-			if (!(*first1 == *first2))
+		while (first1 != last1) {
+			if (*first1 != *first2)
 				return false;
 			++first1;
 			++first2;
@@ -361,16 +364,16 @@ namespace ft
 	bool lexicographical_compare (InputIterator1 first1, InputIterator1 last1,
                                 InputIterator2 first2, InputIterator2 last2)
 	{
-		while (first1!=last1)
+		while (first1 != last1)
 		{
-			if (first2==last2 || *first2<*first1)
+			if (first2 == last2 || *first2 < *first1)
 				return false;
-			else if (*first1<*first2)
+			else if (*first1 < *first2)
 				return true;
 			++first1;
 			++first2;
 		}
-		return (first2!=last2);
+		return (first2 != last2);
 	}
 	
 	template <class T, class Alloc>
@@ -401,8 +404,5 @@ namespace ft
 	void swap (vector<T,Alloc>& x, vector<T,Alloc>& y) {
 		x.swap(y);
 	}
-
-
-
 }
 #endif
