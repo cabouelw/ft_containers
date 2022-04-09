@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/04/07 16:36:12 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/04/09 17:41:28 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -15,6 +15,7 @@
 #include <iostream>
 #include <string>
 #include "iterator.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft
 {
@@ -28,6 +29,8 @@ namespace ft
 			typedef typename allocator_type::const_pointer				const_pointer;
 			typedef ft::ft_iterator<pointer>							iterator;
 			typedef ft::ft_iterator<const_pointer>						const_iterator;
+			typedef ft::ft_reverse_iterator<iterator>					reverse_iterator;
+			typedef ft::ft_reverse_iterator<const_iterator>				const_reverse_iterator;
 			typedef	typename allocator_type::reference					reference;
 			typedef typename allocator_type::const_reference			const_reference;
 			typedef typename allocator_type::difference_type			difference_type;
@@ -90,7 +93,18 @@ namespace ft
 			const_iterator end() const {
 				return (const_iterator(_arry + _size_type));
 			}
-			// TODO rend/rbegin
+			reverse_iterator rbegin() {
+				return (reverse_iterator(iterator(_arry + _size_type)));
+			}
+			reverse_iterator rend() {
+				return (reverse_iterator(_arry));
+			}
+			const_reverse_iterator rbegin() const {
+				return (const_reverse_iterator(_arry + _size_type));
+			}
+			const_reverse_iterator rend() const {
+				return (const_reverse_iterator(_arry));
+			}
 			reference operator[] (size_type n) {
 				return (_arry[n]);
 			}
