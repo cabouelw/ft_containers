@@ -74,9 +74,8 @@ namespace ft
 	template <class Iterator>
 	typename ft_iterator<Iterator>::difference_type operator- ( const ft_iterator<Iterator>& lhs, const ft_iterator<Iterator>& rhs)
 	{
-		return (lhs.base() - rhs.base());
+		return (rhs.base() - lhs.base());
 	}
-
 }
 
 #endif
