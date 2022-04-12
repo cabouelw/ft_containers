@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/04/10 13:29:35 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/04/10 17:10:11 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,9 @@
 #define  VECTOR_HPP
 #include <iostream>
 #include <string>
-#include "iterator.hpp"
-#include "reverse_iterator.hpp"
+#include "Iterator.hpp"
+#include "Reverse_iterator.hpp"
+#include "Is_integral.hpp"
 
 namespace ft
 {
@@ -42,6 +43,10 @@ namespace ft
 			size_t			_capacity;
 			Alloc			_alloc;
 		public:
+			template<bool B, class Type = void>
+			struct enable_if {};
+			template<class Type>
+			struct enable_if<true, Type> { typedef Type type; };
 			explicit vector (const allocator_type& alloc = allocator_type()): _arry(nullptr), _size_type(0), _capacity(0), _alloc(alloc) {}
 			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
 				: _size_type(n), _capacity(n), _alloc(alloc)
@@ -51,10 +56,12 @@ namespace ft
 					_arry[i] = val;
 			}
 			template <class InputIterator>
-			vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type())
-				: _alloc(alloc)
+			vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
+				typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = nullptr) : _alloc(alloc)
 			{
-				this->_size_type = last - first;
+				difference_type size = last - first;
+				this->_size_type = (size < 0) ? (size * -1) : size;
+				// std::cout << "test=" << this->_size_type << "\n";
 				this->_capacity = this->_size_type;
 				this->_arry = this->_alloc.allocate(this->_capacity);
 				for (size_t i = 0; i < this->_size_type; i++)

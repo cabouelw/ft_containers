@@ -2,7 +2,7 @@
 #define  ITERATOR_HPP
 #include <iostream>
 #include <string>
-#include "iterator_traits.hpp"
+#include "Iterator_traits.hpp"
 
 namespace ft
 {
