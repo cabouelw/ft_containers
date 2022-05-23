@@ -68,8 +68,8 @@ namespace ft
 			}
 			iterator begin() { return (iterator(_tree.findMin())); }
 			const_iterator begin() const { return (const_iterator(_tree.findMin())); }
-			iterator end() { return (iterator(_tree.findMax())); }
-			const_iterator end() const { return (const_iterator(_tree.findMax())); }
+			iterator end() { return (iterator(_tree.getEnd())); }
+			const_iterator end() const { return (const_iterator(_tree.getEnd())); }
 			bool empty() const { return((_tree._nodecount == 0)); }
 			size_type size() const { return(_tree._nodecount); }
 			size_type max_size() const { return(_tree->_nodecount); }
@@ -101,10 +101,14 @@ namespace ft
 			{
 				while (first != last)
 				{
-					std::cout  << (*first).first << "|||\n";
 					_tree.insert(*first);
 					++first;
 				}
+			}
+			void erase (iterator position)
+			{
+				// if ((*position).())
+					_tree.remove(*position);
 			}
 			// pair<iterator,bool> insert (const value_type& val)
 			// {

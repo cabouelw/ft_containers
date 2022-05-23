@@ -41,55 +41,54 @@ namespace ft
 				--(*this);
 				return (it);
 			}
-			pointer operator->() const { return (_ptr->elm); }
-			reference operator[] (difference_type n) const { return( _ptr[n]); }
+			pointer operator->() const { return (&(_ptr->elm)); }
+			// reference operator[] (difference_type n) const { return( _ptr[n]); }
 		private:
 			nodeptr		_ptr;
 			nodeptr    successor()
-            {
-                nodeptr curr = _ptr;
-                if (curr->right != nullptr)
-                {
-                    curr = curr->right;
-                    while (curr->left != nullptr)
-                        curr = curr->left;
-                    return curr;
-                }
-                else
-                {
-                    nodeptr ptr_parent = curr->parnt;
-					// std::cout << ptr_parent->elm.first << "daz\n";
-                    while (ptr_parent != nullptr && curr == ptr_parent->right)
-                    {
-                        curr = ptr_parent;
-                        ptr_parent = ptr_parent->parnt;
-                    }
-                    return ptr_parent;
-                }
-            }
-            nodeptr    predecessor()
-            {
-                nodeptr curr = _ptr;
-                if (curr->left != nullptr)
-                {
-                    curr = curr->left;
-                    while (curr->right != nullptr)
-                        curr = curr->right;
-                    return curr;
-                }
-                else
-                {
-                    nodeptr ptr_parent = curr->parnt;
-                    while (ptr_parent != nullptr && curr == ptr_parent->left)
-                    {
-                        curr = ptr_parent;
-                        ptr_parent = ptr_parent->parnt;
-                    }
-                    return ptr_parent;
-
-                }
-            }
-    };
+			{
+				nodeptr curr = _ptr;
+				if (curr->right != nullptr)
+				{
+					curr = curr->right;
+					while (curr->left != nullptr)
+						curr = curr->left;
+					return (curr);
+				}
+				else
+				{
+					nodeptr ptr_parent = curr->parnt;
+					// std::cout <<"|\n" << curr->elm.first << "|daz\n";
+					while (ptr_parent != nullptr && curr == ptr_parent->right)
+					{
+						curr = ptr_parent;
+						ptr_parent = ptr_parent->parnt;
+					}
+					return (ptr_parent);
+				}
+			}
+			nodeptr    predecessor()
+			{
+				nodeptr curr = _ptr;
+				if (curr->left != nullptr)
+				{
+					curr = curr->left;
+					while (curr->right != nullptr)
+						curr = curr->right;
+					return (curr);
+				}
+				else
+				{
+					nodeptr ptr_parent = curr->parnt;
+					while (ptr_parent != nullptr && curr == ptr_parent->left)
+					{
+						curr = ptr_parent;
+						ptr_parent = ptr_parent->parnt;
+					}
+					return (ptr_parent);
+				}
+			}
+	};
 	template <class Iterator, class nodeptr>
 	bool operator==(const ft_iterator_map<Iterator, nodeptr>& lhs, const ft_iterator_map<Iterator, nodeptr>& rhs)
 	{ return (lhs.base() == rhs.base()); }

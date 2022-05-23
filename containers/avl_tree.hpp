@@ -36,11 +36,7 @@ namespace ft
 				: _root(nullptr), _alloc(alloc), _cmp(comp), _nodecount(0) {
 					_end = _alloc.allocate(1);
 					_end->left = _root;
-				}
-			// avltree(T value): _root(nullptr), _alloc(allocator_type()), _cmp(key_compare()), _nodecount(0)
-			// {
-			// 	insert(value);
-			// }
+			}
 			int height()
 			{
 				if (_root == nullptr)
@@ -202,9 +198,10 @@ namespace ft
 					return nullptr;
 				while(node->left != nullptr)
 					node = node->left;
-				std::cout << "sdfgsd\n";
+				// std::cout << "sdfgsd\n";
 				return (node);
 			}
+			ptr_node &getEnd() { return (_end); }
 		private:
 			ptr_node			_root;
 			ptr_node			_end;
@@ -212,7 +209,7 @@ namespace ft
 			key_compare			_cmp;
 			size_type			_nodecount;
 			int					length;
-			ptr_node	&getelm(T &value, ptr_node &root)
+			ptr_node	&getelm(T value, ptr_node &root)
 			{
 				if (root == nullptr)
 					return (root);
@@ -232,15 +229,15 @@ namespace ft
 					return contains(node->right, value);
 				return (true);
 			}
-			ptr_node insert(ptr_node &node, T &value, ptr_node &prnt)
+			ptr_node insert(ptr_node node, T &value, ptr_node &prnt)
 			{
 				if (node == nullptr)
 				{
 					node = _alloc.allocate(1);
 					_alloc.construct(node, value);
+					_end->left = _root;
 					node->parnt = prnt;
-					if (_root == node)
-						_end->left = _root;
+					// std::cout << "node:" << node->elm.first << "|prnt:" << prnt->elm.first << "\n";
 					return (node);
 				}
 				if (_cmp(value.first, node->elm.first))
@@ -258,7 +255,7 @@ namespace ft
 				node->height = 1 + ((leftheight > rightheight) ? leftheight : rightheight);
 				node->bf = (rightheight - leftheight);
 			}
-			ptr_node balance(ptr_node &node)
+			ptr_node balance(ptr_node node)
 			{
 				if (node->bf == -2) {
 					if (node->left->bf <= 0)
@@ -275,82 +272,97 @@ namespace ft
 				}
 				return node;
 			}
-			ptr_node leftLeftCase (ptr_node &node){
+			ptr_node leftLeftCase (ptr_node node){
 				return rightRotation(node) ;
 			}
-			ptr_node leftRightCase (ptr_node &node) {
+			ptr_node leftRightCase (ptr_node node) {
 				node->left = leftRotation(node->left);
 				return leftLeftCase(node);
 			}
-			ptr_node rightRightCase (ptr_node &node) {
+			ptr_node rightRightCase (ptr_node node) {
 				return leftRotation(node);
 			}
-			ptr_node rightLeftCase (ptr_node &node) {
+			ptr_node rightLeftCase (ptr_node node) {
 				node->right = rightRotation(node->right);
 				return rightRightCase(node);
 			}
 			ptr_node leftRotation (ptr_node &node)
 			{
-				ptr_node newParent = node->right;
-				node->right = newParent->left;
-				newParent->left = node;
+				ptr_node	parent = node->parnt;
+				ptr_node	root = node->right;
+				node->right = root->left;
+				node->parnt = root;
+				root->left = node;
+				root->parnt = parent;
 				update(node);
-				update(newParent);
-				return newParent;
+				update(root);
+				return (root);
 			}
 			ptr_node rightRotation(ptr_node &node)
 			{
-				ptr_node newParent = node->left;
-				node->left = newParent->right;
-				newParent->right = node;
+				ptr_node	parnt = node->parnt;
+				ptr_node	root = node->left;
+				node->left = root->right;
+				node->parnt = root;
+				root->right = node;
+				root->parnt = parnt;
 				update(node);
-				update(newParent);
-				return newParent ;
+				update(root);
+				return (root);
 			}
-			ptr_node remove (ptr_node &node, T &elem)
+			ptr_node remove (ptr_node node, T &elem)
 			{
-				if (node == nullptr)
-					return nullptr;
-				if (_cmp(node->elm.first, elem.first))
+				if (!node)
+					return (NULL);
+				if (elem < node->elm)
+					node->left = remove(node->left, elem);
+				else if (elem > node->elm)
 					node->right = remove(node->right, elem);
-				else if (_cmp(elem.first, node->elm.first))
-					node->left = remove(node->left, elem) ;
 				else
 				{
-					if (node->right == nullptr)
-						return node->left;
-					else if (node->left == nullptr)
-						return node->right;
+					if (node->left == nullptr)
+					{
+						ptr_node tmp = node->right;
+						if (tmp != nullptr)
+							tmp->parnt = node->parnt;
+						_alloc.deallocate(node, 1);
+						return tmp;
+					}
+					else if (node->right == nullptr)
+					{
+						ptr_node tmp = node->left;
+						if (tmp != nullptr)
+							tmp->parnt = node->parnt;
+						_alloc.deallocate(node, 1);
+						return tmp;
+					}
 					else
 					{
-						if (node->left->height > node->right->height)
-						{
-							T successorValue = findMax(node->left);
-							node->elm = successorValue;
-							node->left = remove(node->left, successorValue) ; ;
-						}
-						else
-						{
-							T successorValue = findMin(node->right);
-							node->elm = successorValue;
-							node->right = remove (node->right, successorValue);
-						}
+						// ptr_node tmp;
+						ptr_node max_val = this->findMax(node->left);
+						value_type vt = max_val->elm;
+						ptr_node node = max_val->parnt;
+						node->left = remove(node->left, max_val->elm);
+						// tmp = delete_balance_factor(node, vt);
+						_alloc.construct(node, vt);
+						// if (tmp != nullptr)
+						// 	node = tmp;
 					}
 				}
 				update(node);
-				return balance(node);
+				return (balance(node));
 			}
-			T findMin (ptr_node &node)
+			ptr_node findMin (ptr_node node)
 			{
-				while(node->left != NULL)
+				while(node->left != nullptr)
 					node = node->left;
-				return node->elm;
+				return node;
 			}
-			T findMax (ptr_node &node)
+			ptr_node findMax (ptr_node node)
 			{
-				while (node->right != NULL)
+				while (node->right != nullptr)
 					node = node->right;
-				return node->elm;
+				return node;
 			}
 	};
 }
