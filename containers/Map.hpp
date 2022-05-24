@@ -71,8 +71,8 @@ namespace ft
 			iterator end() { return (iterator(_tree.getEnd())); }
 			const_iterator end() const { return (const_iterator(_tree.getEnd())); }
 			bool empty() const { return((_tree._nodecount == 0)); }
-			size_type size() const { return(_tree._nodecount); }
-			size_type max_size() const { return(_tree->_nodecount); }
+			size_type size() const { return(_tree.size()); }
+			size_type max_size() const { return(_tree->size()); }
 			mapped_type& operator[] (const key_type& k) {
 				if (!(_tree.contains(make_pair(k, mapped_type()))))
 					_tree.insert(make_pair(k, mapped_type()));
@@ -107,14 +107,60 @@ namespace ft
 			}
 			void erase (iterator position)
 			{
-				// if ((*position).())
-					_tree.remove(*position);
+				_tree.remove(*position, false);
 			}
-			// pair<iterator,bool> insert (const value_type& val)
-			// {
-
-			// }
-			// iterator insert (iterator position, const value_type& val)
+			size_type erase (const key_type& k)
+			{
+				_tree.remove(ft::make_pair(k, mapped_type()), true);
+				return(1);
+			}
+			void erase (iterator first, iterator last)
+			{
+				while (first != last)
+				{
+					_tree.remove(*first, false);
+					first++;
+				}
+			}
+			void swap (map& x)
+			{
+				map tmp;
+				tmp.insert(x);
+				x.insert(*this);
+				this->insert(tmp);
+			}
+			void clear()
+			{
+				iterator first = this->begin();
+				iterator last = this->end();
+				while (first != last)
+				{
+					_tree.remove(*first, false);
+					first++;
+				}
+			}
+			key_compare key_comp() const
+			{
+				return (_cmp);
+			}
+			value_compare value_comp() const
+			{
+				return (value_compare(_cmp));
+			}
+			iterator find (const key_type& k)
+			{
+				return (iterator(_tree.getelm(ft::make_pair(k, mapped_type())).elm));
+			}
+			const_iterator find (const key_type& k) const
+			{
+				return (const_iterator(_tree.getelm(ft::make_pair(k, mapped_type())).elm));
+			}
+			size_type count (const key_type& k) const
+			{
+				if (_tree.contains(ft::make_pair(k, mapped_type())))
+					return (1);
+				return (0);
+			}
 			private:
 				tree					_tree;
 				allocator_type			_alloc;

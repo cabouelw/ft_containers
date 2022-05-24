@@ -37,13 +37,13 @@ namespace ft
 					_end = _alloc.allocate(1);
 					_end->left = _root;
 			}
-			int height()
+			size_type height()
 			{
 				if (_root == nullptr)
 					return 0;
 				return (_root->height);
 			}
-			int size()
+			size_type size() const
 			{
 				return (_nodecount);
 			}
@@ -67,11 +67,11 @@ namespace ft
 				if (length < getLenght(value.first))
 					length = getLenght(value.first);
 			}
-			bool remove(T elem)
+			bool remove(T elem, bool key)
 			{
 				if (contains(_root, elem))
 				{
-					_root = remove(_root, elem);
+					_root = remove(_root, (!key) ? elem : getelm(elem, _root)->elm);
 					_nodecount--;
 					return true;
 				}
@@ -186,7 +186,7 @@ namespace ft
 			{
 				ptr_node node = _root;
 				if (node == nullptr)
-					return nullptr;
+					return (_end);
 				while(node->right != nullptr)
 					node = node->right;
 				return (node);
@@ -195,10 +195,9 @@ namespace ft
 			{
 				ptr_node node = _root;
 				if (node == nullptr)
-					return nullptr;
+					return (_end);
 				while(node->left != nullptr)
 					node = node->left;
-				// std::cout << "sdfgsd\n";
 				return (node);
 			}
 			ptr_node &getEnd() { return (_end); }
@@ -310,59 +309,62 @@ namespace ft
 				update(root);
 				return (root);
 			}
-			ptr_node remove (ptr_node node, T &elem)
+			ptr_node remove (ptr_node &node, T &elem)
 			{
 				if (!node)
-					return (NULL);
+					return (nullptr);
 				if (elem < node->elm)
 					node->left = remove(node->left, elem);
 				else if (elem > node->elm)
 					node->right = remove(node->right, elem);
 				else
 				{
-					if (node->left == nullptr)
+					if (node->left == nullptr || node->right == nullptr)
 					{
-						ptr_node tmp = node->right;
-						if (tmp != nullptr)
-							tmp->parnt = node->parnt;
+						ptr_node tmp = (node->left == nullptr) ? node->right : node->left;
 						_alloc.deallocate(node, 1);
-						return tmp;
-					}
-					else if (node->right == nullptr)
-					{
-						ptr_node tmp = node->left;
-						if (tmp != nullptr)
-							tmp->parnt = node->parnt;
-						_alloc.deallocate(node, 1);
-						return tmp;
+						return (tmp);
 					}
 					else
 					{
-						// ptr_node tmp;
-						ptr_node max_val = this->findMax(node->left);
-						value_type vt = max_val->elm;
-						ptr_node node = max_val->parnt;
-						node->left = remove(node->left, max_val->elm);
-						// tmp = delete_balance_factor(node, vt);
-						_alloc.construct(node, vt);
-						// if (tmp != nullptr)
-						// 	node = tmp;
+						ptr_node right = node->right;
+						ptr_node left = node->left;
+						ptr_node parnt = node->parnt;
+						if (node->left->height > node->right->height)
+						{
+							ptr_node rm = getelm(findMax(node->left));
+							_alloc.construct(node, rm->elm);
+							node->right = right;
+							node->left = left;
+							node->parnt = parnt;
+							node->left = remove(node->left, rm->elm);
+						}
+						else
+						{
+							ptr_node rm = getelm(findMin(node->right));
+							_alloc.construct(node, rm->elm);
+							node->left = left;
+							node->right = right;
+							node->parnt = parnt;
+							node->right = remove(node->right, rm->elm);
+						}
+						node->parnt = parnt;
 					}
 				}
 				update(node);
 				return (balance(node));
 			}
-			ptr_node findMin (ptr_node node)
+			T findMin (ptr_node node)
 			{
 				while(node->left != nullptr)
 					node = node->left;
-				return node;
+				return node->elm;
 			}
-			ptr_node findMax (ptr_node node)
+			T findMax (ptr_node node)
 			{
 				while (node->right != nullptr)
 					node = node->right;
-				return node;
+				return node->elm;
 			}
 	};
 }
