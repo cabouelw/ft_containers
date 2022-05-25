@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/04/10 17:10:11 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/05/25 20:13:09 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,7 +47,7 @@ namespace ft
 			struct enable_if {};
 			template<class Type>
 			struct enable_if<true, Type> { typedef Type type; };
-			explicit vector (const allocator_type& alloc = allocator_type()): _arry(nullptr), _size_type(0), _capacity(0), _alloc(alloc) {}
+			explicit vector (const allocator_type& alloc = allocator_type()): _arry(nullptr), _size_type(0), _capacity(0), _alloc(alloc) { }
 			explicit vector (size_type n, const value_type& val = value_type(), const allocator_type& alloc = allocator_type())
 				: _size_type(n), _capacity(n), _alloc(alloc)
 			{
@@ -70,11 +70,11 @@ namespace ft
 					first++;
 				}
 			}
-			vector (const vector& x) { *this = x; }
+			vector (const vector& x) : _capacity(0) { *this = x; }
 			vector& operator= (const vector& x) {
 				if (this == &x)
 					return (*this);
-				if (this->_capacity)
+				if (this->_capacity != 0)
 					this->_alloc.deallocate(this->_arry, this->_capacity);
 				this->_arry = this->_alloc.allocate(x._capacity);
 				this->_size_type = x._size_type;
@@ -84,7 +84,8 @@ namespace ft
 				return *this;
 			}
 			~vector() {
-				this->_alloc.deallocate(this->_arry, this->_capacity);
+				if (this->_capacity)
+					this->_alloc.deallocate(this->_arry, this->_capacity);
 				this->_size_type = 0;
 				this->_capacity = 0;
 			}
@@ -197,23 +198,25 @@ namespace ft
 				return (_arry[_size_type - 1]);
 			}
 			template <class InputIterator>
-			void assign (InputIterator first, InputIterator last) {
-				size_type tmp_size = last - first;
-				if (tmp_size > this->_capacity)
+			void assign (InputIterator first, InputIterator last,
+                    typename  enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = nullptr) {
+				difference_type tmp_size = last - first;
+				size_type size = (tmp_size < 0) ? (tmp_size * -1) : tmp_size;
+				if (size > this->_capacity)
 				{
 					pointer tmp_arry = this->_arry;
-					this->_arry = _alloc.allocate(tmp_size);
+					this->_arry = _alloc.allocate(size);
 					for (size_t i = 0; i < this->_size_type; i++)
 						this->_arry[i] = tmp_arry[i];
 					this->_alloc.deallocate(tmp_arry, this->_capacity);
-					this->_capacity = tmp_size;
+					this->_capacity = size;
 				}
-				for (size_t i = 0; i < tmp_size; i++)
+				for (size_t i = 0; i < size; i++)
 				{
 					this->_arry[i] = *first;
 					++first;
 				}
-				this->_size_type = tmp_size;
+				this->_size_type = size;
 			}
 			void assign (size_type n, const value_type& val) {
 				if (n > this->_capacity)
@@ -247,35 +250,31 @@ namespace ft
 					this->_size_type--;
 			}
 			iterator insert (iterator position, const value_type& val) {
-				size_type pos = ((position - this->begin()) < 0) ? 0 : (position - this->begin());
-				int insrt = (position - this->begin());
-				pointer tmp_arry = this->_arry;
-				size_t old_size = this->_size_type;
-				size_type i = old_size;
-				if (this->_size_type == this->_capacity)
+				difference_type check = position - this->begin();
+				size_type pos = (check < 0) ? (check * -1) : check;
+				if (_capacity == 0)
 				{
-					size_t new_capacity = (this->_capacity * 2);
-					this->_arry = _alloc.allocate(new_capacity);
-					this->_alloc.deallocate(tmp_arry, this->_capacity);
-					this->_capacity = new_capacity;
-					this->_size_type = (this->_size_type < pos) ? pos : this->_size_type;
-					for (i = 0; i <= old_size; i++)
-						this->_arry[i] = tmp_arry[i];
+					_arry = _alloc.allocate(1);
+					_capacity++;
 				}
-				size_type j = old_size;
-				while (i != pos && pos <= old_size)
+				else if (_size_type == _capacity)
 				{
-					this->_arry[i] = tmp_arry[j--];
-					if (!i)
-						break;
-					--i;
+					pointer new_ptr = _alloc.allocate(_capacity * 2);
+					for (size_type i = 0; i < _size_type; i++)
+						new_ptr[i] = _arry[i];
+					_alloc.deallocate(_arry, _capacity);
+					_arry = new_ptr;
+					_capacity *= 2;
 				}
-				this->_arry[pos] = (insrt >= 0) ? val : 0;
-				this->_size_type++;
-				return (this->begin() + pos);
+				for (size_type i = _size_type; i > pos; i--)
+					_arry[i] = _arry[i - 1];
+				_size_type++;
+				_arry[pos] = val;
+				return iterator(_arry + pos);
 			}
 			void insert (iterator position, size_type n, const value_type& val) {
-				size_type pos = position - this->begin();
+				difference_type check = position - this->begin();
+				size_type pos = (check < 0) ? (check * -1) : check;
 				pointer tmp_arry = this->_arry;
 				size_t old_size = this->_size_type;
 				size_type i = old_size;
@@ -306,48 +305,42 @@ namespace ft
 				}
 			}
 			template <class InputIterator>
-			void insert (iterator position, InputIterator first, InputIterator last) {
-				size_type pos = position - this->begin();
-				pointer tmp_arry = this->_arry;
-				size_t old_size = this->_size_type;
-				size_type i = old_size;
-				size_type n = (last - first);
-				if ((old_size + n) > this->_capacity)
+			void insert (iterator position, InputIterator first, InputIterator last,
+				typename enable_if<!is_integral<InputIterator>::value, InputIterator>::type* = nullptr) {
+				size_type count = 0;
+				difference_type check = position - begin();
+				size_type pos = (check < 0) ? (check * -1) : check;
+				while (first != last)
 				{
-					size_t new_capacity = ((this->_capacity * 2) > (old_size + n)) ? (this->_capacity * 2) : (old_size + n);
-					this->_arry = _alloc.allocate(new_capacity);
-					for (i = 0; i < this->_capacity; i++)
-						this->_arry[i] = tmp_arry[i];
-					old_size = (pos >= old_size) ? (pos) : (old_size);
-					this->_alloc.deallocate(tmp_arry, this->_capacity);
-					this->_capacity = new_capacity;
+					count++;
+					first++;
 				}
-				i = old_size + n;
-				while (i != pos && pos <= old_size)
+				if ((_size_type + count) > this->_capacity)
+					this->reserve(_size_type + count);
+				for (size_t i = _size_type; i > pos; i--)
 				{
-					this->_arry[i] = this->_arry[i - n];
-					if (!i)
-						break;
-					--i;
+					_arry[i - 1 + count] = _arry[i - 1];
 				}
-				i = 0;
-				for (InputIterator idx = first; idx != last; idx++)
+				_size_type += count;
+				while (count--)
 				{
-					this->_arry[pos + i] = *idx;
-					i++;
+					_arry[pos + count] = *(last - 1);
+					last--;
 				}
-				this->_size_type = old_size + n;
 			}
 			iterator erase (iterator position) {
-				size_type pos = position - this->begin();
+				difference_type check = position - this->begin();
+				size_type pos = (check < 0) ? (check * -1) : check;
 				this->_size_type -= (this->_size_type > 0) ? 1 : 0;
 				for (size_type i = pos; i < (this->size() + 1); i++)
 					this->_arry[i] = this->_arry[i + 1];
 				return (this->begin() + pos);
 			}
 			iterator erase (iterator first, iterator last) {
-				size_type size = last - first;
-				size_type pos = first - this->begin();
+				difference_type check = last - first;
+				size_type size = (check < 0) ? (check * -1) : check;
+				check = first - this->begin();
+				size_type pos = (check < 0) ? (check * -1) : check;
 				this->_size_type -= (size <= this->_size_type) ? size : this->_size_type;
 				if ((pos + size) >= this->size())
 					return (this->begin() + pos);
@@ -399,7 +392,7 @@ namespace ft
 	
 	template <class T, class Alloc>
 	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
-		return (equal(lhs.begin(), lhs.end(), rhs.begin()));
+		return (equal(lhs.begin(), lhs.end(), rhs.begin()) && lhs.size() == rhs.size() );
 	}
 	template <class T, class Alloc>
 	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {

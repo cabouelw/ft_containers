@@ -6,18 +6,18 @@
 #    By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2022/02/15 14:07:53 by cabouelw          #+#    #+#              #
-#    Updated: 2022/02/15 14:09:27 by cabouelw         ###   ########.fr        #
+#    Updated: 2022/05/25 21:05:48 by cabouelw         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-NAME = Containers
+NAME = Container
 CC = clang++
 CFLAGS = -Wall -Wextra -Werror -std=c++98
-SRC =	main.cpp\
-		containers/Vector.cpp\
+SRC =	main.cpp
 
-INC =	ft_containers.hpp\
-		containers/Vector.hpp\
+INC =	containers/Vector.hpp\
+		containers/Map.hpp\
+		containers/Stack.hpp
 
 OBJ = $(SRC:.cpp=.o)
 
