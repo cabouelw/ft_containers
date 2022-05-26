@@ -5,7 +5,7 @@
 #include "Pair.hpp"
 #include "avl_tree.hpp"
 #include "map_Iterator_traits.hpp"
-#include "Reverse_iterator.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft
 {
@@ -189,7 +189,10 @@ namespace ft
 			{
 				return(allocator_type());
 			}
-
+			void print()
+			{
+				_tree.print();
+			}
 
 	};
 }

@@ -6,7 +6,7 @@
 /*   By: cabouelw <cabouelw@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2022/02/15 14:06:41 by cabouelw          #+#    #+#             */
-/*   Updated: 2022/05/25 20:13:09 by cabouelw         ###   ########.fr       */
+/*   Updated: 2022/05/26 15:36:04 by cabouelw         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,8 +14,8 @@
 #define  VECTOR_HPP
 #include <iostream>
 #include <string>
-#include "Iterator.hpp"
-#include "Reverse_iterator.hpp"
+#include "iterator.hpp"
+#include "reverse_iterator.hpp"
 #include "Is_integral.hpp"
 
 namespace ft

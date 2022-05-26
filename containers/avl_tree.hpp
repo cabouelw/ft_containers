@@ -41,6 +41,20 @@ namespace ft
 					_end = _alloc.allocate(1);
 					_end->left = _root;
 			}
+			~avltree() {
+				_root = clear_all(_root);
+                _alloc.deallocate(_end, 1);
+			}
+			ptr_node						clear_all(ptr_node node)
+			{
+				if (node != nullptr)
+                {
+                    clear_all(node->left);
+                    clear_all(node->right);
+                    _alloc.deallocate(node, 1);
+                }
+                return nullptr;
+			}
 			size_type						height()
 			{
 				if (_root == nullptr)
@@ -67,6 +81,8 @@ namespace ft
 				if (!_root)
 					length = 0;
 				this->_root = insert(this->_root, value, this->_end);
+				_end->left = _root; // NOTE
+				_root->parnt = _end; // NOTE
 				_nodecount++;
 				if (length < getLenght(value.first))
 					length = getLenght(value.first);
@@ -305,15 +321,13 @@ namespace ft
 					return contains(node->right, value);
 				return (true);
 			}
-			ptr_node insert(ptr_node node, T &value, ptr_node &prnt)
+			ptr_node insert(ptr_node &node, T &value, ptr_node &prnt)
 			{
 				if (node == nullptr)
 				{
 					node = _alloc.allocate(1);
 					_alloc.construct(node, value);
-					_end->left = _root;
 					node->parnt = prnt;
-					// std::cout << "node:" << node->elm.first << "|prnt:" << prnt->elm.first << "\n";
 					return (node);
 				}
 				if (_cmp(value.first, node->elm.first))
